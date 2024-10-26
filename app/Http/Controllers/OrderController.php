@@ -34,13 +34,13 @@ class OrderController extends Controller
         $currency = "EGP"; //your currency
 
         $kashierOrderHash = $this->generateKashierOrderHash($order,$currency);
-        $paymentUrl = "https://checkout.kashier.io/?merchantId=you-MID" .
+        $paymentUrl = "https://checkout.kashier.io/?merchantId=MID-29264-164" .
             "&mode=test" .
             "&orderId={$order->id}" .
             "&amount={$order->price}" .
             "&currency={$currency}" .
             "&hash={$kashierOrderHash}" .
-            "&allowedMethods=card" . 
+            "&allowedMethods=card,bank_installments,wallet,fawry" . 
             "&merchantRedirect=" . urlencode('http://localhost:8000/callback') .
             "&failureRedirect=" . urlencode('http://localhost:8000/failure') .
             "&redirectMethod=get" .
@@ -51,11 +51,11 @@ class OrderController extends Controller
     
 
     private function generateKashierOrderHash($order,$currency){
-        $mid = "you-MID"; //your merchant id
+        $mid = "MID-29264-164"; //your merchant id
         $amount = $order->price; //eg: 100
         $currency = $currency;
         $orderId = $order->id; //eg: 99, your system order ID
-        $secret = "your-api-key";
+        $secret = "04d5f792-d1b9-468f-881f-b66212303b75";
         $path = "/?payment=".$mid.".".$orderId.".".$amount.".".$currency.(isset( $CustomerReference) ?(".".$CustomerReference):null);
         $hash = hash_hmac( 'sha256' , $path , $secret ,false);
         return $hash;
@@ -64,7 +64,7 @@ class OrderController extends Controller
     public function handleCallback(Request $request)
     {
         // Define your secret API key
-        $secret = 'your-api-key';
+        $secret = '04d5f792-d1b9-468f-881f-b66212303b75';
 
         // Log the incoming request
         Log::info('Callback hit with parameters: ', $request->all());
@@ -100,9 +100,9 @@ class OrderController extends Controller
 
                 // Update the order status to completed
                 $order->update([
-                    'payment_id' => $transactionId,
+                    'payment_transaction_id' => $transactionId,
+                    'payment_method' => 'online-payment',
                     'payment_status' => "Completed",
-                    'status_message' => "Completed"
                 ]);
 
                 // Send confirmation email
@@ -111,11 +111,13 @@ class OrderController extends Controller
                 } catch (\Exception $e) {
                     Log::error('Email sending failed: ', ['error' => $e->getMessage()]);
                 }
+                return redirect('/')->with('status','payment done successfully');
 
             }elseif ( $paymentStatus === 'CANCELLED') {
                 // Update the order status to cancelled
                 $order->update([
-                    'payment_id' => $transactionId,
+                    'payment_transaction_id' => $transactionId,
+                    'payment_method' => 'online-payment',
                     'payment_status' => "Cancelled"
                 ]);
                 return redirect('/cart')->with('message', 'Payment cancelled. Please try again.');
@@ -123,7 +125,8 @@ class OrderController extends Controller
              else {
                 // Update the order status to failed
                 $order->update([
-                    'payment_id' => $transactionId,
+                    'payment_transaction_id' => $transactionId,
+                    'payment_method' => 'online-payment',
                     'payment_status' => "Failed"
                 ]);
                 return redirect('/cart')->with('message', 'Payment failed. Please try again.');
