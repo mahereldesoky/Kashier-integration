@@ -65,7 +65,6 @@ class OrderController extends Controller
     {
         // Define your secret API key
         $secret = '04d5f792-d1b9-468f-881f-b66212303b75';
-
         // Log the incoming request
         Log::info('Callback hit with parameters: ', $request->all());
 
@@ -96,7 +95,7 @@ class OrderController extends Controller
 
             if ($paymentStatus === 'SUCCESS') {
                 // Clear the user's cart
-                'CartModel'::where('user_id', Auth::user()->id)->delete();
+                // 'CartModel'::where('user_id', Auth::user()->id)->delete();
 
                 // Update the order status to completed
                 $order->update([
@@ -105,31 +104,34 @@ class OrderController extends Controller
                     'payment_status' => "Completed",
                 ]);
 
+
                 // Send confirmation email
                 try {
                     // Mail::to('youmail@gmail.com')->send('new Mail($order)');
                 } catch (\Exception $e) {
                     Log::error('Email sending failed: ', ['error' => $e->getMessage()]);
                 }
-                return redirect('/')->with('status','payment done successfully');
+                return redirect('/orders')->with('status','payment done successfully');
 
             }elseif ( $paymentStatus === 'CANCELLED') {
+
                 // Update the order status to cancelled
                 $order->update([
                     'payment_transaction_id' => $transactionId,
                     'payment_method' => 'online-payment',
                     'payment_status' => "Cancelled"
                 ]);
-                return redirect('/cart')->with('message', 'Payment cancelled. Please try again.');
+                return redirect('/orders')->with('status', 'Payment cancelled. Please try again.');
             }
              else {
+
                 // Update the order status to failed
                 $order->update([
                     'payment_transaction_id' => $transactionId,
                     'payment_method' => 'online-payment',
                     'payment_status' => "Failed"
                 ]);
-                return redirect('/cart')->with('message', 'Payment failed. Please try again.');
+                return redirect('/orders')->with('status', 'Payment failed. Please try again.');
             }
 
             // Redirect to the thank-you page
@@ -137,7 +139,7 @@ class OrderController extends Controller
         } else {
             // Invalid signature
             Log::error('Invalid signature: ', $request->all());
-            return redirect('/cart')->with('message', 'Invalid signature. Please try again.');
+            return redirect('/orders')->with('status', 'Invalid signature. Please try again.');
         }
     }
 }

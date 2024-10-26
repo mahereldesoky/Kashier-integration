@@ -23,6 +23,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders-create', [OrderController::class, 'create'])->name('order.create');
     Route::post('/orders-create', [OrderController::class, 'store'])->name('order.store');
     Route::post('/orders-submit/{id}', [OrderController::class, 'initiatePayment'])->name('order.submit');
+    Route::get('/callback', [OrderController::class, 'handleCallback']);
 
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
