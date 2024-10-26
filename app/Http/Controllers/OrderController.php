@@ -34,7 +34,7 @@ class OrderController extends Controller
         $currency = "EGP"; //your currency
 
         $kashierOrderHash = $this->generateKashierOrderHash($order,$currency);
-        $paymentUrl = "https://checkout.kashier.io/?merchantId=MID-29264-164" .
+        $paymentUrl = "https://checkout.kashier.io/?merchantId=youe-MID" .
             "&mode=test" .
             "&orderId={$order->id}" .
             "&amount={$order->price}" .
@@ -51,11 +51,11 @@ class OrderController extends Controller
     
 
     private function generateKashierOrderHash($order,$currency){
-        $mid = "MID-29264-164"; //your merchant id
+        $mid = "your-MID"; //your merchant id
         $amount = $order->price; //eg: 100
         $currency = $currency;
         $orderId = $order->id; //eg: 99, your system order ID
-        $secret = "04d5f792-d1b9-468f-881f-b66212303b75";
+        $secret = "your-api-key";
         $path = "/?payment=".$mid.".".$orderId.".".$amount.".".$currency.(isset( $CustomerReference) ?(".".$CustomerReference):null);
         $hash = hash_hmac( 'sha256' , $path , $secret ,false);
         return $hash;
@@ -64,7 +64,7 @@ class OrderController extends Controller
     public function handleCallback(Request $request)
     {
         // Define your secret API key
-        $secret = '04d5f792-d1b9-468f-881f-b66212303b75';
+        $secret = 'your-api-key';
         // Log the incoming request
         Log::info('Callback hit with parameters: ', $request->all());
 
